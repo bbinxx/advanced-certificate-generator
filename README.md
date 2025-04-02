@@ -93,6 +93,38 @@ npm start
 - `GET /api/certificate/verify/:linkId` - Verify certificate
 - `GET /api/certificate/status/:certificateId` - Check certificate status
 
+## Known Issues & Limitations
+
+### API Endpoints
+1. **Certificate Status Check** (`GET /api/certificate/status/:certificateId`)
+   - Query execution incomplete
+   - Error handling needs improvement
+   - Missing response formatting
+
+### Authentication
+1. **Session Management**
+   - Session persistence issues after server restart
+   - Cookie settings need security hardening
+
+### Certificate Generation
+1. **Bulk Generation**
+   - CSV validation incomplete
+   - Progress tracking not implemented
+   - Error handling for malformed CSV files needed
+
+### Template Management
+1. **Template Export**
+   - Export functionality partially implemented
+   - Missing validation for template data
+   - File size limitations not enforced
+
+## Upcoming Fixes
+- [ ] Implement proper error responses for certificate status endpoint
+- [ ] Add session persistence with Redis/MongoDB
+- [ ] Complete CSV validation and progress tracking
+- [ ] Add template size validation and compression
+- [ ] Implement proper error logging
+
 ## Contributing
 
 1. Fork the repository
