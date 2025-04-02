@@ -101,22 +101,46 @@ npm start
    - Error handling needs improvement
    - Missing response formatting
 
+2. **Certificate Addition** (`POST /api/certificate/add`)
+   - Missing file size validation for uploads
+   - No rate limiting implemented
+   - Lacks input sanitization
+
 ### Authentication
 1. **Session Management**
    - Session persistence issues after server restart
    - Cookie settings need security hardening
+   - Missing password complexity requirements
+   - No rate limiting on login attempts
+   - Missing password reset functionality
+
+2. **Security**
+   - CORS configuration needs tightening
+   - Missing HTTP security headers
+   - No input validation middleware
 
 ### Certificate Generation
 1. **Bulk Generation**
    - CSV validation incomplete
    - Progress tracking not implemented
    - Error handling for malformed CSV files needed
+   - No limit on batch size
 
-### Template Management
-1. **Template Export**
-   - Export functionality partially implemented
-   - Missing validation for template data
-   - File size limitations not enforced
+2. **Single Generation**
+   - Missing image optimization
+   - No PDF compression
+   - Template validation incomplete
+
+### File Structure
+1. **Public Directory**
+   - Exposed sensitive JavaScript modules
+   - Unorganized static assets
+   - Missing cache control
+
+2. **Views**
+   - Duplicate design templates (`design.ejs` and `design copy.ejs`)
+   - Missing error pages
+   - Inconsistent template structure
 
 ## Upcoming Fixes
 - [ ] Implement proper error responses for certificate status endpoint
@@ -124,6 +148,17 @@ npm start
 - [ ] Complete CSV validation and progress tracking
 - [ ] Add template size validation and compression
 - [ ] Implement proper error logging
+- [ ] Add rate limiting for API endpoints
+- [ ] Implement HTTP security headers
+- [ ] Add input validation middleware
+- [ ] Reorganize public assets
+- [ ] Create proper error pages
+- [ ] Remove duplicate design template
+- [ ] Add password reset functionality
+- [ ] Implement file upload size limits
+- [ ] Add batch size limits for bulk generation
+- [ ] Optimize certificate image generation
+- [ ] Add PDF compression
 
 ## Contributing
 
