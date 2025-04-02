@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate Not Verified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex justify-center items-center h-screen bg-red-50">
+  <%- include('layout') %>
+  <% title = 'Certificate Not Verified' %>
+
+  <div class="flex justify-center items-center min-h-screen bg-red-50 py-12 px-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full text-center">
+        <div class="mb-6">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-times-circle text-4xl text-red-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-red-600">Certificate Not Authentic</h1>
+        </div>
+        
+        <p class="text-gray-700 mb-8">No valid certificate found for the Link ID: <%= linkId %></p>
+
+        <a href="/" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+            <i class="fas fa-home mr-2"></i> Return Home
+        </a>
+    </div>
+  </div>
+</body>
+</html>
