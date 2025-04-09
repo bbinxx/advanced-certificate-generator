@@ -1,34 +1,60 @@
-<%- include('layout', { body: '' }) %> <!-- Explicitly pass body -->
-<% title = 'Welcome to Certificate Portal' %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="/styles.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="font-sans bg-gray-50">
+    <%- include('navbar') %>
+    
+    <div class="flex flex-col items-center justify-center min-h-screen py-16 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-gray-50 to-gray-100">
+      <div class="max-w-4xl w-full space-y-12 text-center">
+        <div>
+          <h1 class="text-5xl font-extrabold text-gray-900 mb-6">
+            Welcome to Certificate Portal
+          </h1>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Create, manage, and verify digital certificates with our secure platform.
+          </p>
+        </div>
 
-<div class="flex flex-col items-center justify-center min-h-screen py-16 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-gray-50 to-gray-100">
-  <div class="max-w-4xl w-full space-y-12 text-center">
-    <div>
-      <h1 class="text-5xl font-extrabold text-gray-900 mb-6">
-        Welcome to Certificate Portal
-      </h1>
-      <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-        Create, manage, and verify digital certificates with our secure platform.
-      </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+          <a href="/signin" 
+             class="group relative flex items-center justify-center py-4 px-8 border-2 border-blue-600 
+                    rounded-lg bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-md">
+            <span class="text-lg font-semibold text-white">
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              Sign In
+            </span>
+          </a>
+          <a href="/signup" 
+             class="group relative flex items-center justify-center py-4 px-8 border-2 border-green-600 
+                    rounded-lg bg-green-600 hover:bg-green-700 transition-all duration-200 shadow-md">
+            <span class="text-lg font-semibold text-white">
+              <i class="fas fa-user-plus mr-2"></i>
+              Sign Up
+            </span>
+          </a>
+        </div>
+      </div>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-      <a href="/signin" 
-         class="group relative flex items-center justify-center py-4 px-8 border-2 border-blue-600 
-                rounded-lg bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-md">
-        <span class="text-lg font-semibold text-white">
-          <i class="fas fa-sign-in-alt mr-2"></i>
-          Sign In
-        </span>
-      </a>
-      <a href="/signup" 
-         class="group relative flex items-center justify-center py-4 px-8 border-2 border-green-600 
-                rounded-lg bg-green-600 hover:bg-green-700 transition-all duration-200 shadow-md">
-        <span class="text-lg font-semibold text-white">
-          <i class="fas fa-user-plus mr-2"></i>
-          Sign Up
-        </span>
-      </a>
-    </div>
-  </div>
-</div>
+</body>
+</html>

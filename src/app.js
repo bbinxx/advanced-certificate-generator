@@ -196,59 +196,100 @@ const clearSensitiveParams = (req, res, next) => {
 app.use(clearSensitiveParams);
 
 // Auth routes with session management
+// Enhance input validation for signup
 app.post('/signup', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Enhanced validation
     if (!email || !password) {
       logger.warn('Signup attempt with missing fields');
       return res.status(400).render('signup', {
         title: 'Sign Up',
         error: 'Email and password are required.',
+        body: { email: email || '' }
+      });
+    }
+
+    // Simple email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      logger.warn('Signup attempt with invalid email format');
+      return res.status(400).render('signup', {
+        title: 'Sign Up',
+        error: 'Please enter a valid email address.',
+        body: { email }
+      });
+    }
+
+    // Basic password strength check
+    if (password.length < 8) {
+      logger.warn('Signup attempt with weak password');
+      return res.status(400).render('signup', {
+        title: 'Sign Up',
+        error: 'Password must be at least 8 characters long.',
         body: { email }
       });
     }
 
     const user = await signUp(email, password);
+    
+    // Ensure the session is properly set before redirect
     req.session.user = { uid: user.uid, email: user.email };
-
-    logger.info(`User signed up: ${user.email}`);
-    res.redirect('/design');
+    req.session.save((err) => {
+      if (err) {
+        logger.error('Session save error during signup:', { message: err.message });
+        throw new Error('Failed to create session');
+      }
+      
+      logger.info(`User signed up successfully: ${user.email}`);
+      res.redirect('/design');
+    });
   } catch (error) {
     logger.error('Signup failed', { message: error.message });
     res.status(400).render('signup', {
       title: 'Sign Up',
       error: error.message || 'Failed to sign up. Please try again.',
-      body: { email: req.body.email }
+      body: { email: req.body.email || '' }
     });
   }
 });
 
 
+// Enhance signin route with improved session handling
 app.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Enhanced validation
     if (!email || !password) {
       logger.warn('Signin attempt with missing fields');
       return res.status(400).render('signin', {
         title: 'Sign In',
         error: 'Email and password are required.',
-        body: { email }
+        body: { email: email || '' }
       });
     }
 
     const user = await signIn(email, password);
+    
+    // Ensure the session is properly set before redirect
     req.session.user = { uid: user.uid, email: user.email };
-
-    logger.info(`User signed in: ${user.email}`);
-    res.redirect('/design');
+    req.session.save((err) => {
+      if (err) {
+        logger.error('Session save error during signin:', { message: err.message });
+        throw new Error('Failed to create session');
+      }
+      
+      logger.info(`User signed in successfully: ${user.email}`);
+      res.redirect('/design');
+    });
   } catch (error) {
     logger.error('Signin failed', { message: error.message });
     res.status(401).render('signin', {
       title: 'Sign In',
       error: error.message || 'Invalid email or password.',
-      body: { email: req.body.email }
+      body: { email: req.body.email || '' }
     });
   }
 });
@@ -264,31 +305,71 @@ app.get('/signup', (req, res) => {
   if (req.session.user) return res.redirect('/design');
   res.render('signup', { title: 'Sign Up', error: null, body: {} });
 });
-
+ // Add a logout route
+app.get('/logout', (req, res) => {
+  try {
+    // Call the imported logOut function if needed
+    if (req.session.user) {
+      const email = req.session.user.email;
+      // Destroy the session
+      req.session.destroy((err) => {
+        if (err) {
+          logger.error('Error destroying session:', { message: err.message });
+          return res.status(500).send('Error logging out');
+        }
+        logger.info(`User logged out: ${email}`);
+        res.redirect('/');
+      });
+    } else {
+      res.redirect('/');
+    }
+  } catch (error) {
+    logger.error('Logout error:', { message: error.message });
+    res.redirect('/');
+  }
+});
 
 // Protected routes
+// Enhance design page route with better error handling
 app.get('/design', requireAuth, (req, res) => {
   try {
+    // Verify that we actually have the user email in the session
+    if (!req.session.user || !req.session.user.email) {
+      logger.warn('Attempt to access design page with invalid session');
+      return res.redirect('/signin');
+    }
+    
     res.render('design', { 
       user: { email: req.session.user.email },
       title: 'Design Page'
     });
   } catch (error) {
     logger.error('Error rendering design page:', { message: error.message, stack: error.stack });
-    res.status(500).send('Error loading design page. Please try again later.');
+    res.status(500).render('error', {
+      title: 'Error',
+      message: 'Error loading design page. Please try again later.',
+      error: { status: 500 }
+    });
   }
 });
 
 // Routes
+// Enhance redirect handling for index page
 app.get('/', (req, res) => {
   try {
-    if (req.session.user) {
+    // Check for active session and redirect if found
+    if (req.session && req.session.user && req.session.user.uid) {
+      logger.debug('User already authenticated, redirecting to design page');
       return res.redirect('/design');
     }
     res.render('index', { title: 'Sign In / Sign Up', error: null, body: '' });
   } catch (error) {
     logger.error('Error rendering index page:', { message: error.message, stack: error.stack });
-    res.status(500).send('Error loading the page. Please try again later.');
+    res.status(500).render('error', {
+      title: 'Error',
+      message: 'Error loading the page. Please try again later.',
+      error: { status: 500 }
+    });
   }
 });
 
