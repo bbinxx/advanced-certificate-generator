@@ -38,7 +38,7 @@ A web application for creating, managing, and verifying digital certificates wit
 1. Clone the repository:
 ```bash
 git clone [repository-url]
-cd certificate-generation
+cd advanced-certificate-generator
 ```
 
 2. Install dependencies:
@@ -168,9 +168,9 @@ npm start
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+<!-- ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. -->
 
 ## Acknowledgments
 

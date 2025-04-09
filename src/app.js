@@ -1,5 +1,5 @@
-require('dotenv').config(); // Load environment variables
 // src/app.js
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
