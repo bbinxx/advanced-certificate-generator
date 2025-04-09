@@ -1,8 +1,30 @@
 // saveFile.js
 import { canvas } from './canvasManagement.js';
+// import { ErrorHandler, withErrorHandling } from './errorHandling.js';
+
+// Helper function to check if canvas is empty
+function isCanvasEmpty() {
+  // Check if canvas exists
+  if (!canvas) {
+    return true;
+  }
+  
+  // Get all objects on the canvas (excluding grid lines)
+  const objects = canvas.getObjects().filter(obj => obj.type !== 'line');
+  
+  // Canvas is empty if there are no objects
+  return objects.length === 0;
+}
 
 export async function saveAsPDF() {
     try {
+        // First check if canvas is empty
+        if (isCanvasEmpty()) {
+            // Use more direct error approach if ErrorHandler is unavailable
+            alert('Cannot export an empty canvas to PDF. Please add content before exporting.');
+            return;
+        }
+
         const { PDFDocument, rgb, PageSizes } = window.PDFLib;
 
         const canvasElement = document.getElementById('fabricCanvas');
@@ -31,7 +53,7 @@ export async function saveAsPDF() {
 
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        download(blob, 'canvas.pdf', 'application/pdf');
+        download(blob, 'Certifcate.pdf', 'application/pdf');
 
     } catch (error) {
         console.error('Error saving as PDF:', error);
@@ -39,11 +61,9 @@ export async function saveAsPDF() {
     }
 }
 
-
-
-
 export function saveDesign() {
     try {
+        // Saving empty design JSON is valid, no need to check
         const jsonData = JSON.stringify(canvas.toJSON(['id', 'name', 'type', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'angle', 'fill', 'fontFamily', 'fontSize', 'text', 'src']), null, 2);
         const blob = new Blob([jsonData], { type: 'application/json' });
         const link = document.createElement('a');
@@ -57,9 +77,15 @@ export function saveDesign() {
 }
 
 export function saveAsImage() {
-    const format = 'png'; // You can make this configurable if needed.
-    
     try {
+        // First check if canvas is empty
+        if (isCanvasEmpty()) {
+            alert('Cannot export an empty canvas as image. Please add content before exporting.');
+            return;
+        }
+        
+        const format = 'png'; // You can make this configurable if needed.
+        
         const dataURL = canvas.toDataURL({
             format: format,
             quality: 1,
@@ -67,7 +93,7 @@ export function saveAsImage() {
         });
         const link = document.createElement('a');
         link.href = dataURL;
-        link.download = `canvas.${format}`;
+        link.download = `Certifcate.${format}`;
         link.click();
     } catch (error) {
         console.error('Error saving as image:', error);
