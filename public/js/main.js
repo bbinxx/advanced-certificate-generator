@@ -15,7 +15,7 @@ import { importDesign } from './modules/importDesign.js';
 import { openModal } from './modules/modalManagement.js';
 import { ErrorHandler, withErrorHandling, withAsyncErrorHandling, validateParam } from './modules/errorHandling.js';
 import { createLoadingScreen, updateLoadingProgress } from './modules/uiUtils.js';
-import { TemplateManager } from './modules/templateManager.js';
+// import { TemplateManager } from './modules/templateManager.js';
 import { initializeSidebar } from './modules/sidebarManager.js';
 import { DynamicToolbar } from './modules/dynamicToolbar.js';
 import { googleFonts } from './modules/fontList.js';
