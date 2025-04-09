@@ -1,6 +1,15 @@
 // src/firestore.js
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, doc, getDoc, addDoc, getDocs, query, where } = require('firebase/firestore');
+const { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  addDoc, 
+  getDocs, 
+  query, 
+  where 
+} = require('firebase/firestore');
 
 const firebaseConfig = require('./firebaseConfig');
 
@@ -13,9 +22,22 @@ const addCertificate = async (name, certificateId, date, issuer) => {
       throw new Error('All fields (name, certificateId, date, issuer) are required');
     }
 
+    // Sanitize and validate inputs
+    const sanitizedName = String(name).trim();
+    const sanitizedCertificateId = String(certificateId).trim();
+    const sanitizedIssuer = String(issuer).trim();
+    
+    // Validate date format (assuming ISO string format)
+    let sanitizedDate;
+    try {
+      sanitizedDate = new Date(date).toISOString();
+    } catch (e) {
+      throw new Error('Invalid date format');
+    }
+
     // Check if a certificate with this ID already exists
     const certificatesRef = collection(db, 'certificates');
-    const q = query(certificatesRef, where('certificateId', '==', certificateId));
+    const q = query(certificatesRef, where('certificateId', '==', sanitizedCertificateId));
     const querySnapshot = await getDocs(q);
     
     // If certificate already exists, return its ID
@@ -26,10 +48,11 @@ const addCertificate = async (name, certificateId, date, issuer) => {
 
     // Otherwise create a new certificate
     const docRef = await addDoc(collection(db, 'certificates'), {
-      name,
-      certificateId,
-      date,
-      issuer
+      name: sanitizedName,
+      certificateId: sanitizedCertificateId,
+      date: sanitizedDate,
+      issuer: sanitizedIssuer,
+      createdAt: new Date().toISOString()
     });
 
     console.log('Certificate added with ID:', docRef.id);
@@ -39,7 +62,6 @@ const addCertificate = async (name, certificateId, date, issuer) => {
     throw error;
   }
 };
- 
 
 const getCertificate = async (linkId) => {
   try {
@@ -59,7 +81,7 @@ const getCertificate = async (linkId) => {
     throw error;
   }
 };
-// Add this to src/firestore.js
+
 const getCertificateByIdField = async (certificateId) => {
   try {
     console.log(`Checking for certificate with ID: ${certificateId}`);
@@ -73,13 +95,14 @@ const getCertificateByIdField = async (certificateId) => {
     }
     
     console.log('Certificate found');
-    return querySnapshot.docs[0].data();
+    // Return the data and the document ID
+    const data = querySnapshot.docs[0].data();
+    data.docId = querySnapshot.docs[0].id; // Add document ID to the data
+    return data;
   } catch (error) {
     console.error('Error fetching certificate by ID field:', error);
     throw error;
   }
 };
 
-// Update the exports
 module.exports = { addCertificate, getCertificate, getCertificateByIdField };
-

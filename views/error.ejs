@@ -1,0 +1,84 @@
+<!-- views/error.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <!-- Error Header with status code -->
+        <div class="flex items-center mb-6">
+            <div class="bg-red-100 p-3 rounded-full mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800"><%= title %></h1>
+                <% if (error && error.status) { %>
+                    <p class="text-sm text-gray-500">Status Code: <%= error.status %></p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="border-l-4 border-red-500 bg-red-50 p-4 mb-6">
+            <p class="text-red-700"><%= message %></p>
+        </div>
+
+        <!-- Error Details (only in development) -->
+        <% if (error && error.stack && process.env.NODE_ENV === 'development') { %>
+            <div class="mb-6">
+                <h2 class="text-sm font-semibold text-gray-600 mb-2">Error Details</h2>
+                <div class="bg-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
+                    <pre class="whitespace-pre-wrap"><%= error.stack %></pre>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Error Guidance Based on Error Type -->
+        <div class="mb-6">
+            <h2 class="text-sm font-semibold text-gray-600 mb-2">What to do next</h2>
+            
+            <% if (error && error.status === 404) { %>
+                <p class="text-sm text-gray-600">The page you were looking for doesn't exist. Check the URL or return home.</p>
+            <% } else if (error && error.status === 403) { %>
+                <p class="text-sm text-gray-600">You don't have permission to access this resource. Please sign in or contact support.</p>
+            <% } else if (error && error.status === 401) { %>
+                <p class="text-sm text-gray-600">Authentication is required. Please sign in to continue.</p>
+            <% } else if (error && error.status >= 500) { %>
+                <p class="text-sm text-gray-600">There was a problem with our server. Please try again later or contact support.</p>
+            <% } else { %>
+                <p class="text-sm text-gray-600">Something went wrong. Please try again or return to home page.</p>
+            <% } %>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap gap-3">
+            <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-150 ease-in-out">
+                Return Home
+            </a>
+            
+            <% if (error && error.status === 401) { %>
+                <a href="/signin" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition duration-150 ease-in-out">
+                    Sign In
+                </a>
+            <% } %>
+            
+            <button onclick="window.history.back()" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded transition duration-150 ease-in-out">
+                Go Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Contact Support (Optional for 500 errors) -->
+    <% if (error && error.status >= 500) { %>
+        <div class="mt-4 text-center text-sm text-gray-500">
+            <p>If this problem persists, please contact support with reference code: <%= Date.now().toString(36) %></p>
+        </div>
+    <% } %>
+</body>
+</html>

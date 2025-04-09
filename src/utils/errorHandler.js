@@ -1,3 +1,4 @@
+// src/utils/errorHandler.js
 const ERROR_TYPES = {
   VALIDATION: 'ValidationError',
   AUTHENTICATION: 'AuthenticationError',
@@ -25,20 +26,44 @@ class AppError extends Error {
 
 class ErrorLogger {
   static logError(error, req = null) {
+    // Sanitize any sensitive information from error details
+    const sanitizedDetails = { ...error.details };
+    
+    // List of keys that might contain sensitive information
+    const sensitiveKeys = ['email', 'password', 'token', 'auth', 'key', 'secret', 'credential'];
+    
+    // Recursively sanitize the details object
+    const sanitizeObject = (obj) => {
+      if (!obj || typeof obj !== 'object') return obj;
+      
+      Object.keys(obj).forEach(key => {
+        const lowerKey = key.toLowerCase();
+        
+        // Check if this key might contain sensitive data
+        if (sensitiveKeys.some(sensitive => lowerKey.includes(sensitive))) {
+          obj[key] = '[REDACTED]';
+        } else if (typeof obj[key] === 'object') {
+          sanitizeObject(obj[key]);
+        }
+      });
+      
+      return obj;
+    };
+    
+    sanitizeObject(sanitizedDetails);
+    
     const errorLog = {
       timestamp: new Date(),
       type: error.type || 'UnknownError',
       level: error.level || ERROR_LEVELS.ERROR,
       message: error.message,
       stack: error.stack,
-      details: error.details || {},
+      details: sanitizedDetails,
       request: req ? {
         method: req.method,
         path: req.path,
         params: req.params,
-        query: req.query,
-        body: req.body,
-        headers: req.headers,
+        // Omit query and body for security
         ip: req.ip
       } : null
     };
@@ -54,12 +79,16 @@ class ErrorLogger {
 
     console.log(`${colors[error.level || 'error']}[${errorLog.timestamp.toISOString()}] ${error.type}: ${error.message}${colors.reset}`);
     console.log('Details:', JSON.stringify(errorLog.details, null, 2));
+    
     if (errorLog.request) {
       console.log('Request Context:', JSON.stringify(errorLog.request, null, 2));
     }
-    console.log('Stack:', error.stack);
+    
+    // Log stack trace only for server errors or in development
+    if (error.level === ERROR_LEVELS.ERROR || error.level === ERROR_LEVELS.FATAL || process.env.NODE_ENV !== 'production') {
+      console.log('Stack:', error.stack);
+    }
 
-    // Here you could also implement logging to file or external service
     return errorLog;
   }
 }
@@ -68,56 +97,84 @@ class ErrorLogger {
 const errorMiddleware = (err, req, res, next) => {
   ErrorLogger.logError(err, req);
 
-  // Send appropriate response based on error type
-  switch (err.type) {
-    case ERROR_TYPES.VALIDATION:
-      res.status(400).json({
-        status: 'error',
-        type: err.type,
-        message: err.message,
-        details: err.details
-      });
-      break;
+  // Check if the response has already been sent
+  if (res.headersSent) {
+    return next(err);
+  }
 
-    case ERROR_TYPES.AUTHENTICATION:
-      res.status(401).json({
-        status: 'error',
-        type: err.type,
-        message: err.message
-      });
-      break;
+  // Check if HTML is expected
+  const expectsHtml = req.accepts(['html', 'json']) === 'html';
 
-    case ERROR_TYPES.DATABASE:
-      res.status(503).json({
-        status: 'error',
-        type: err.type,
-        message: 'Database operation failed'
-      });
-      break;
+  if (expectsHtml) {
+    // Respond with HTML page
+    let statusCode;
+    let errorTitle;
 
-    default:
-      res.status(500).json({
-        status: 'error',
-        type: ERROR_TYPES.SERVER,
-        message: 'Internal server error'
-      });
+    switch (err.type) {
+      case ERROR_TYPES.VALIDATION:
+        statusCode = 400;
+        errorTitle = 'Validation Error';
+        break;
+      case ERROR_TYPES.AUTHENTICATION:
+        statusCode = 401;
+        errorTitle = 'Authentication Error';
+        break;
+      case ERROR_TYPES.DATABASE:
+        statusCode = 503;
+        errorTitle = 'Database Error';
+        break;
+      default:
+        statusCode = 500;
+        errorTitle = 'Server Error';
+    }
+
+    return res.status(statusCode).render('error', {
+      title: errorTitle,
+      message: err.message,
+      error: {
+        status: statusCode,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : ''
+      }
+    });
+  } else {
+    // JSON response
+    switch (err.type) {
+      case ERROR_TYPES.VALIDATION:
+        res.status(400).json({
+          status: 'error',
+          type: err.type,
+          message: err.message
+        });
+        break;
+
+      case ERROR_TYPES.AUTHENTICATION:
+        res.status(401).json({
+          status: 'error',
+          type: err.type,
+          message: err.message
+        });
+        break;
+
+      case ERROR_TYPES.DATABASE:
+        res.status(503).json({
+          status: 'error',
+          type: err.type,
+          message: 'Database operation failed'
+        });
+        break;
+
+      default:
+        res.status(500).json({
+          status: 'error',
+          type: ERROR_TYPES.SERVER,
+          message: 'Internal server error'
+        });
+    }
   }
 };
 
-// Request logging middleware
+// Request logging middleware - placeholder, actual implementation in app.js
 const requestLogger = (req, res, next) => {
-  const startTime = Date.now();
-  console.log(`\x1b[32m[${new Date().toISOString()}] ${req.method} ${req.url}\x1b[0m`);
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Query:', JSON.stringify(req.query, null, 2));
-  console.log('Body:', JSON.stringify(req.body, null, 2));
-
-  // Log response
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    console.log(`\x1b[32m[${new Date().toISOString()}] ${req.method} ${req.url} ${res.statusCode} ${duration}ms\x1b[0m`);
-  });
-
   next();
 };
 
