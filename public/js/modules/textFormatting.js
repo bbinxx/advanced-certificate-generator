@@ -4,93 +4,135 @@ import { selectedElement } from './elementManagement.js';
 import { googleFonts } from './fontList.js';
 import { canvas } from './canvasManagement.js';
 
+// Track formatting state
+const textState = {
+  bold: false,
+  italic: false,
+  underline: false,
+  fontFamily: 'Arial',
+  fontSize: 16,
+  textAlign: 'left',
+  fill: '#000000'
+};
+
+// Core text property setter
 function setTextProperty(property, value) {
-    if (!selectedElement) return;
-    if (selectedElement.type !== 'i-text' && selectedElement.type !== 'text') return;
-
-    selectedElement.set(property, value);
-    canvas.renderAll(); // Re-render the canvas
-    saveState();
+  if (!selectedElement || !isTextObject(selectedElement)) return;
+  
+  selectedElement.set(property, value);
+  canvas.renderAll();
+  saveState();
+  
+  // Update state
+  textState[property] = value;
 }
 
+// Text formatting functions
 export function formatText(style) {
-    if (!selectedElement) return;
-    if (selectedElement.type !== 'i-text' && selectedElement.type !== 'text') return;
+  if (!selectedElement || !isTextObject(selectedElement)) return;
 
-    switch (style) {
-        case 'bold':
-            setTextProperty('fontWeight', selectedElement.fontWeight === 'bold' ? 'normal' : 'bold');
-            break;
-        case 'italic':
-            setTextProperty('fontStyle', selectedElement.fontStyle === 'italic' ? 'normal' : 'italic');
-            break;
-        case 'underline':
-            setTextProperty('textDecoration', selectedElement.textDecoration === 'underline' ? 'none' : 'underline');
-            break;
-        default:
-            break;
-    }
+  switch (style) {
+    case 'bold':
+      textState.bold = !textState.bold;
+      setTextProperty('fontWeight', textState.bold ? 'bold' : 'normal');
+      break;
+      
+    case 'italic':
+      textState.italic = !textState.italic; 
+      setTextProperty('fontStyle', textState.italic ? 'italic' : 'normal');
+      break;
+      
+    case 'underline':
+      textState.underline = !textState.underline;
+      setTextProperty('textDecoration', textState.underline ? 'underline' : '');
+      break;
+  }
 }
 
-export function changeFont() {
-    const fontFamily = document.getElementById('fontFamily').value;
-    setTextProperty('fontFamily', fontFamily);
+// Font family change handler
+export function changeFont(fontFamily) {
+  if (!fontFamily) return;
+  textState.fontFamily = fontFamily;
+  setTextProperty('fontFamily', fontFamily);
 }
 
-export function changeTextColor() {
-    const textColor = document.getElementById('textColor').value;
-    setTextProperty('fill', textColor);
+// Font size handler
+export function changeFontSize(size) {
+  if (!size || isNaN(size)) return;
+  textState.fontSize = parseInt(size);
+  setTextProperty('fontSize', textState.fontSize);
 }
 
-export function changeFontSize() {
-    const fontSize = document.getElementById('fontSize').value;
-    setTextProperty('fontSize', fontSize);
+// Text color handler 
+export function changeTextColor(color) {
+  if (!color) return;
+  textState.fill = color;
+  setTextProperty('fill', color);
 }
 
-let fontsLoaded = false;
+// Text alignment handler
+export function setTextAlignment(alignment) {
+  if (!alignment) return;
+  textState.textAlign = alignment;
+  setTextProperty('textAlign', alignment);
+}
 
+// Font loader
 export function populateFonts() {
-    if (fontsLoaded) return;
+  const fontSelect = document.getElementById('fontFamily');
+  if (!fontSelect || fontSelect.children.length > 0) return;
 
-    const fontFamilySelect = document.getElementById('fontFamily');
-    if (!fontFamilySelect) {
-        console.error('Font family select element not found.');
-        return;
-    }
+  // Load Google Fonts
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${googleFonts.map(f => 
+    f.replace(/ /g, '+')).join('&family=')}&display=swap`;
+  document.head.appendChild(link);
 
-    const fontsLink = document.createElement('link');
-    fontsLink.rel = 'stylesheet';
-    fontsLink.href = `https://fonts.googleapis.com/css2?family=${googleFonts.map(font => `${font.replace(/ /g, '+')}:wght@400;700`).join('&family=')}&display=swap`;
-
-    fontsLink.onload = () => {
-        googleFonts.forEach(font => {
-            const option = document.createElement('option');
-            option.value = font;
-            option.textContent = font;
-            option.classList.add('font-option');
-            fontFamilySelect.appendChild(option);
-        });
-
-        fontsLoaded = true;
-    };
-
-    fontsLink.onerror = () => {
-        console.error('Failed to load Google Fonts.');
-    };
-
-    document.head.appendChild(fontsLink);
+  // Populate select
+  googleFonts.forEach(font => {
+    const option = document.createElement('option');
+    option.value = font;
+    option.textContent = font;
+    option.style.fontFamily = font;
+    fontSelect.appendChild(option);
+  });
 }
 
-// Add event listeners for real-time updates
-document.addEventListener('DOMContentLoaded', () => {
-    const textColorInput = document.getElementById('textColor');
-    const fontSizeInput = document.getElementById('fontSize');
+// Helper function to check if object is text
+function isTextObject(obj) {
+  return obj && (obj.type === 'i-text' || obj.type === 'text');
+}
 
-    if (textColorInput) {
-        textColorInput.addEventListener('input', changeTextColor);
-    }
+// Initialize event listeners
+export function initTextFormatting() {
+  // Font controls
+  document.getElementById('fontFamily')?.addEventListener('change', e => 
+    changeFont(e.target.value));
+  
+  document.getElementById('fontSize')?.addEventListener('input', e =>
+    changeFontSize(e.target.value));
+    
+  document.getElementById('textColor')?.addEventListener('input', e =>
+    changeTextColor(e.target.value));
 
-    if (fontSizeInput) {
-        fontSizeInput.addEventListener('input', changeFontSize);
-    }
-});
+  // Style buttons
+  document.getElementById('boldButton')?.addEventListener('click', () => 
+    formatText('bold'));
+    
+  document.getElementById('italicButton')?.addEventListener('click', () =>
+    formatText('italic')); 
+    
+  document.getElementById('underlineButton')?.addEventListener('click', () =>
+    formatText('underline'));
+
+  // Alignment buttons
+  document.getElementById('alignLeftButton')?.addEventListener('click', () =>
+    setTextAlignment('left'));
+    
+  document.getElementById('alignCenterButton')?.addEventListener('click', () =>
+    setTextAlignment('center'));
+    
+  document.getElementById('alignRightButton')?.addEventListener('click', () =>
+    setTextAlignment('right'));
+}

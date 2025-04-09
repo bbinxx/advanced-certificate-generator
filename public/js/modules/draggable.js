@@ -14,7 +14,13 @@ export function makeDraggable(element) {
             inertia: true
         });
 }
-
+export function setupDraggableModals() {
+    // Get all modal elements that should be draggable
+    const modals = document.querySelectorAll('.draggable-modal');
+    modals.forEach(modal => {
+        makeDraggable(modal);
+    });
+}
 function dragMoveListener(event) {
     const target = event.target;
     const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;

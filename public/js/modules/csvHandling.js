@@ -1,39 +1,16 @@
-//csvHandling.js
-// dataManagement.js
 import { canvas } from './canvasManagement.js';
 import { generateQRCode } from './verification.js';
 import { saveAsPDF } from './saveAsFile.js';
 
 let csvData = [];
 let currentRecordIndex = 0;
-let mappingState = JSON.parse(localStorage.getItem('mappingState')) || {};
-
-export function openCSVUploadInterface() {
-    const csvUploadInterface = document.getElementById('csvUploadInterface');
-    if (csvUploadInterface) {
-        csvUploadInterface.classList.add('visible');
-        // Clear previous data
-        const table = document.getElementById('csvDataTable');
-        if (table) {
-            table.querySelector('thead').innerHTML = '';
-            table.querySelector('tbody').innerHTML = '';
-        }
-        // Reset file input
-        const fileInput = document.getElementById('csvFileInput');
-        if (fileInput) {
-            fileInput.value = '';
-        }
-    }
-}
+let mappingState = JSON.parse(localStorage.getItem('csvMappingState')) || {};
 
 export function closeCSVUploadInterface() {
     const csvUploadInterface = document.getElementById('csvUploadInterface');
     if (csvUploadInterface) {
-        csvUploadInterface.classList.remove('visible');
-    }
-    const mapping = document.getElementById('mapping');
-    if (mapping) {
-        mapping.style.display = 'block';
+        csvUploadInterface.style.display = 'none';
+        console.log('CSV interface closed'); // Debug log
     }
 }
 
@@ -64,10 +41,10 @@ export function parseCSV() {
             }
 
             csvData = results.data;
+            currentRecordIndex = 0;
             displayCSVData(csvData);
             displayTextBoxesForMapping();
             
-            // Show success feedback
             showSuccess('CSV file successfully loaded with ' + csvData.length + ' records');
         }
     });
@@ -89,16 +66,66 @@ export function closeMappingPanel() {
     }
 }
 
+export function openCSVUploadInterface() {
+    const csvUploadInterface = document.getElementById('csvUploadInterface');
+    const table = document.getElementById('csvDataTable');
+    
+    if (csvUploadInterface) {
+        csvUploadInterface.style.display = 'block';
+    }
+
+    if (table) {
+        let thead = table.querySelector('thead');
+        let tbody = table.querySelector('tbody');
+
+        if (!thead) {
+            thead = document.createElement('thead');
+            table.appendChild(thead);
+        }
+        if (!tbody) {
+            tbody = document.createElement('tbody');
+            table.appendChild(tbody);
+        }
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+    } else {
+        console.error('CSV Data Table not found');
+    }
+
+    const fileInput = document.getElementById('csvFileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+}
+
 export function displayCSVData(data) {
     const table = document.getElementById('csvDataTable');
-    if (!table || !data || data.length === 0) return;
+    if (!table) {
+        console.error('CSV Data Table not found');
+        return;
+    }
 
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
+    let thead = table.querySelector('thead');
+    let tbody = table.querySelector('tbody');
+
+    if (!thead) {
+        thead = document.createElement('thead');
+        table.appendChild(thead);
+    }
+    if (!tbody) {
+        tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+    }
+
     thead.innerHTML = '';
     tbody.innerHTML = '';
 
-    // Create header row
+    if (!data || data.length === 0 || !data[0] || typeof data[0] !== 'object') {
+        console.error('Invalid or empty CSV data');
+        return;
+    }
+
     const headers = Object.keys(data[0]);
     const headerRow = document.createElement('tr');
     headers.forEach(header => {
@@ -108,12 +135,11 @@ export function displayCSVData(data) {
     });
     thead.appendChild(headerRow);
 
-    // Create data rows
-    data.slice(0, 10).forEach(row => { // Show only first 10 rows in preview
+    data.slice(0, 10).forEach(row => {
         const tr = document.createElement('tr');
         headers.forEach(header => {
             const td = document.createElement('td');
-            td.textContent = row[header] || '';
+            td.textContent = row[header] !== undefined ? String(row[header]) : '';
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -129,6 +155,8 @@ export function displayCSVData(data) {
         tr.appendChild(td);
         tbody.appendChild(tr);
     }
+
+    console.log('CSV data displayed successfully');
 }
 
 export function toggleFieldMappingPanel() {
@@ -145,34 +173,42 @@ export function toggleFieldMappingPanel() {
 }
 
 export function displayTextBoxesForMapping() {
+    if (!canvas || !csvData || csvData.length === 0) {
+        console.error('Canvas or CSV data not available');
+        return;
+    }
+
     const textBoxes = canvas.getObjects().filter(obj => obj.type === 'i-text');
     const fieldMappingContainer = document.getElementById('fieldMappingContainer');
-    if (!fieldMappingContainer || !window.csvData || !window.csvData[0]) return;
-
-    console.log('Text Boxes:', textBoxes);
-    console.log('CSV Data:', window.csvData);
+    if (!fieldMappingContainer) {
+        console.error('Field mapping container not found');
+        return;
+    }
 
     fieldMappingContainer.innerHTML = '';
+    const csvHeaders = Object.keys(csvData[0]);
+
     textBoxes.forEach((textBox, index) => {
         const wrapper = document.createElement('div');
-        wrapper.className = 'mapping-row';
+        wrapper.className = 'mapping-row flex items-center mb-2';
 
         const label = document.createElement('label');
         label.textContent = `Text Box ${index + 1}: `;
+        label.className = 'mr-2';
 
         const select = document.createElement('select');
         select.dataset.textBoxId = textBox.id;
+        select.className = 'border rounded p-1 flex-grow';
 
-        const emptyOption = document.createElement('option');
-        emptyOption.value = '';
-        emptyOption.textContent = '-- Select Field --';
-        select.appendChild(emptyOption);
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '-- Select Field --';
+        select.appendChild(defaultOption);
 
-        const fields = Object.keys(window.csvData[0]);
-        fields.forEach(field => {
+        csvHeaders.forEach(header => {
             const option = document.createElement('option');
-            option.value = field;
-            option.textContent = field;
+            option.value = header;
+            option.textContent = header;
             select.appendChild(option);
         });
 
@@ -189,6 +225,44 @@ export function displayTextBoxesForMapping() {
         wrapper.appendChild(select);
         fieldMappingContainer.appendChild(wrapper);
     });
+
+    const navigationButtons = document.createElement('div');
+    navigationButtons.className = 'flex justify-between mt-4';
+    
+    const previousButton = document.createElement('button');
+    previousButton.textContent = 'Previous';
+    previousButton.className = 'bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2';
+    previousButton.addEventListener('click', previousRecord);
+
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    nextButton.className = 'bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2';
+    nextButton.addEventListener('click', nextRecord);
+
+    const generateButton = document.createElement('button');
+    generateButton.textContent = 'Generate Certificates';
+    generateButton.className = 'bg-blue-500 text-white px-4 py-2 rounded';
+    generateButton.addEventListener('click', generateCertificates);
+
+    navigationButtons.appendChild(previousButton);
+    navigationButtons.appendChild(nextButton);
+    navigationButtons.appendChild(generateButton);
+
+    fieldMappingContainer.appendChild(navigationButtons);
+    updateCanvasWithCurrentRecord();
+}
+
+export function updateMappingState() {
+    const fieldMappingContainer = document.getElementById('fieldMappingContainer');
+    if (!fieldMappingContainer) return;
+
+    const selects = fieldMappingContainer.querySelectorAll('select');
+    selects.forEach(select => {
+        const textBoxId = select.dataset.textBoxId;
+        mappingState[textBoxId] = select.value;
+    });
+
+    localStorage.setItem('csvMappingState', JSON.stringify(mappingState));
 }
 
 export function updateCanvasWithCurrentRecord() {
@@ -197,14 +271,10 @@ export function updateCanvasWithCurrentRecord() {
     const currentRecord = csvData[currentRecordIndex];
     const textBoxes = canvas.getObjects().filter(obj => obj.type === 'i-text');
 
-    console.log('Updating canvas with current record:', currentRecord);
-    console.log('Text Boxes:', textBoxes);
-
     textBoxes.forEach(textBox => {
         const csvField = mappingState[textBox.id];
         if (csvField && currentRecord[csvField] !== undefined) {
             textBox.set('text', String(currentRecord[csvField]));
-            console.log(`Updated textBox ${textBox.id} with ${currentRecord[csvField]}`);
         }
     });
 
@@ -226,93 +296,33 @@ export function previousRecord() {
 }
 
 export async function generateCertificates() {
-    if (!csvData || !canvas) return;
+    if (!csvData || csvData.length === 0) {
+        showError('No CSV data available');
+        return;
+    }
 
-    const textBoxes = canvas.getObjects().filter(obj => obj.type === 'i-text');
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     try {
-        for (let index = 0; index < csvData.length; index++) {
-            const row = csvData[index];
-
-            textBoxes.forEach(textBox => {
-                const csvField = mappingState[textBox.id];
-                if (csvField && row[csvField] !== undefined) {
-                    textBox.set('text', String(row[csvField]));
-                }
-            });
-
-            canvas.requestRenderAll();
-
+        for (let i = 0; i < csvData.length; i++) {
+            currentRecordIndex = i;
+            updateCanvasWithCurrentRecord();
             await delay(100);
-
-            saveAsPDF()
+            await saveAsPDF();
         }
+        showSuccess(`Generated ${csvData.length} certificates`);
     } catch (error) {
         console.error('Error generating certificates:', error);
-        alert('An error occurred while generating certificates.');
+        showError('An error occurred while generating certificates');
     }
 }
 
-// export async function saveCertificate(index, row) {
-   
-
-//         const containerWidth = container.offsetWidth;
-//         const containerHeight = container.offsetHeight;
-
-//         const canvasElement = document.createElement('canvas');
-//         const context = canvasElement.getContext('2d');
-
-//         canvasElement.width = containerWidth;
-//         canvasElement.height = containerHeight;
-
-//         context.fillStyle = 'white';
-//         context.fillRect(0, 0, canvasElement.width, canvasElement.height);
-
-//         canvas.renderAll(context);
-
-//         // const qrCodeUrl = await generateQRCode(`http://localhost:3000/verify?certificateId=${row.ID}`);
-//         // const qrCodeImg = new Image();
-
-//         // qrCodeImg.onload = function () {
-//         //     context.drawImage(qrCodeImg, 10, 10, 100, 100);
-
-//         //     const finalDataURL = canvasElement.toDataURL('image/jpeg', 1.0);
-//         //     const link = document.createElement('a');
-//         //     link.href = finalDataURL;
-//         //     link.download = `certificate_${index + 1}.jpg`;
-//         //     link.click();
-//         // };
-
-//         // qrCodeImg.onerror = function(error) {
-//         //     console.error('Error loading QR code image:', error);
-//         //     alert('Error loading QR code image.');
-//         // };
-
-//         // qrCodeImg.src = qrCodeUrl;
-
-    
-// }
-
-export function saveMappingState() {
-    localStorage.setItem('mappingState', JSON.stringify(mappingState));
-}
-
-export function updateMappingState() {
-    document.querySelectorAll('#fieldMappingContainer select').forEach(select => {
-        const textBoxId = select.dataset.textBoxId;
-        const csvField = select.value;
-        mappingState[textBoxId] = csvField;
-    });
-}
-
 function showError(message) {
-    // Implementation depends on your UI, but could be a toast or alert
     console.error(message);
-    alert(message); // Replace with better UI feedback
+    alert(message);
 }
 
 function showSuccess(message) {
-    // Implementation depends on your UI, but could be a toast or alert
     console.log(message);
+    alert(message);
 }

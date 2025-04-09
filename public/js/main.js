@@ -10,7 +10,7 @@ import { saveAsPDF, saveDesign, saveAsImage } from './modules/saveAsFile.js';
 import { saveState, undo, redo, updateLayerList } from './modules/stateManagement.js';
 import { openCSVUploadInterface, closeCSVUploadInterface, parseCSV, displayCSVData, displayTextBoxesForMapping, updateCanvasWithCurrentRecord, nextRecord, previousRecord, generateCertificates, updateMappingState } from './modules/csvHandling.js';
 import { makeDraggable } from './modules/draggable.js';
-import { addQRCode, addVerifyLink } from './modules/verification.js';
+// import { addQRCode, addVerifyLink } from './modules/verification.js';
 import { importDesign } from './modules/importDesign.js';
 import { openModal } from './modules/modalManagement.js';
 import { ErrorHandler, withErrorHandling, withAsyncErrorHandling, validateParam } from './modules/errorHandling.js';

@@ -1,15 +1,15 @@
 // Filename: modalManagement.js
-import { applyVerificationChoice, addCertificate } from './verification.js';
-import { currentRecordIndex } from './csvHandling.js';
-import { 
-  displayTextBoxesForMapping, 
-  nextRecord, 
-  updateCertificateDetails, 
-  previousRecord, 
-  generateCertificates,
-  saveMappingState,
-  resetMappingState
-} from './csvHandling.js';
+// import { applyVerificationChoice, addCertificate } from './verification.js';
+// import { currentRecordIndex } from './csvHandling.js';
+// import { 
+//   displayTextBoxesForMapping, 
+//   nextRecord, 
+//   updateCertificateDetails, 
+//   previousRecord, 
+//   generateCertificates,
+//   saveMappingState,
+//   resetMappingState
+// } from './csvHandling.js';
 
 // Open the modal and add content
 export function openModal(buttonId) {

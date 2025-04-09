@@ -20,7 +20,8 @@ export function initCanvas() {
         canvas = new fabric.Canvas('fabricCanvas', {
             width: originalWidth,
             height: originalHeight,
-            preserveObjectStacking: true
+            preserveObjectStacking: true,
+            backgroundColor: '#ffffff' // Set white background
         });
 
         // Set the canvas viewport
@@ -37,8 +38,11 @@ export function initCanvas() {
         }, 250));
 
         console.log('Canvas initialized with dimensions:', originalWidth, originalHeight);
+        
+        return canvas; // Add this line to return the canvas object
     } else {
         console.error('fabricContainer not found in the DOM');
+        return null;
     }
 }
 
