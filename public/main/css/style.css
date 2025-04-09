@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Averia+Sans+Libre&family=Bebas+Neue&family=Cinzel:wght@400..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&family=VT323&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Cinzel', serif;
     color: white;
 }
 
@@ -195,7 +197,17 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 z-index: 10;
 /* padding: 10px; */
 }
+/* #fontFamily{
+    font-family: initial;
+    font-size: initial;
+    font-style: initial;
+    font-weight: initial;
+    line-height: initial;
+    color: initial;
+} */
 .floating-panel button{
+    font-weight: bold;
+    color: white;
     background-color: blue;
     /* padding: 5px; */
 }
